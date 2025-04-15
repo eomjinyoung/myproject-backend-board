@@ -14,7 +14,6 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @SpringBootApplication // Gradle에서 bootRun 태스크를 수행할 때 실행시킬 메인 클래스를 지정하는 애노테이션
-@PropertySource("file:${user.home}/config/bitcamp-study.properties")
 public class App implements WebMvcConfigurer {
   // Web MVC 관련 추가 사항은 WebMvcConfigurer 구현체의 메서드를 통해 설정한다.
   // 예) HandlerInterceptor, HandlerMethodArgumentResolver 등
