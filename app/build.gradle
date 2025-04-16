@@ -36,6 +36,14 @@ bootRun {
 group = 'bitcamp'
 version = '0.0.1-SNAPSHOT'
 
+// 마이크로서비스 + Docker 기반 배포용
+// 기존의 group, version은 무시된다.
+tasks.named('bootJar') {
+    archiveBaseName.set(rootProject.name)     // 기본 이름
+    archiveVersion.set('')      // 버전
+    archiveClassifier.set('') // 접미사
+}
+
 repositories {
     mavenCentral() // https://repo.maven.apache.org/maven2/
 }
