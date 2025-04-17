@@ -128,3 +128,111 @@ docker logs board-server
 ```bash
 docker logs -f --tail 100 board-server
 ```
+
+
+## NCP - Container Registry 사용하기
+
+### 로그인 하기
+
+```bash
+$ sudo docker login k8s-edu-camp71.kr.ncr.ntruss.com
+Username: Access Key ID
+Password: Secret Key
+```
+
+### 이미지에 태깅하기
+
+```bash
+$ sudo docker tag local-image:tagname new-repo:tagname
+$ sudo docker tag myproject-backend-board k8s-edu-camp71.kr.ncr.ntruss.com/myproject-backend-board
+```
+
+#### 저장소에 이미지 올리기
+
+```bash
+$ sudo docker push k8s-edu-camp71.kr.ncr.ntruss.com/<TARGET_IMAGE[:TAG]>
+$ sudo docker push k8s-edu-camp71.kr.ncr.ntruss.com/myproject-backend-board
+```
+
+## NCP - Ncloud Kubernetes Service 사용하기
+
+### `board-server-secret.yml`
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: board-server-secret
+type: Opaque
+stringData:
+  NCP_ENDPOINT: https://kr.object.ncloudstorage.com
+  NCP_REGIONNAME: kr-standard
+  NCP_ACCESSKEY: ncp_iam_BPASKR9DyqAS18JKNMqE
+  NCP_SECRETKEY: ncp_iam_BPKSKRRKsBWmq7dRFrOgOdZxYKeVjhteZj
+  NCP_BUCKETNAME: bitcamp-camp71
+  JDBC_URL: jdbc:mysql://db-33q0r7-kr.vpc-pub-cdb.ntruss.com:3306/studentdb
+  JDBC_USERNAME: student
+  JDBC_PASSWORD: bitcamp123!@#
+  JDBC_DRIVER: com.mysql.cj.jdbc.Driver
+```
+### `board-server-deployment.yml`
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: board-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: board-server
+  template:
+    metadata:
+      labels:
+        app: board-server
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: board-server
+          image: lo20hyy7.kr.private-ncr.ntruss.com/myproject-backend-board
+          ports:
+            - containerPort: 8020
+          envFrom:
+            - secretRef:
+                name: board-server-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: board-server-service
+spec:
+  selector:
+    app: board-server
+  ports:
+    - protocol: TCP
+      port: 8010
+      targetPort: 8010
+  type: LoadBalancer
+```
+
+### Secret 생성
+
+```bash
+kubectl2 apply -f board-server-secret.yml
+```
+
+### Deployment 생성
+
+```bash
+kubectl2 apply -f board-server-deployment.yml
+```
+
+### 확인
+
+```bash
+kubectl2 get secrets
+kubectl2 get deployments
+kubectl2 get svc
+```
