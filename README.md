@@ -129,7 +129,6 @@ docker logs board-server
 docker logs -f --tail 100 board-server
 ```
 
-
 ## NCP - Container Registry 사용하기
 
 ### 로그인 하기
@@ -156,7 +155,12 @@ $ sudo docker push k8s-edu-camp71.kr.ncr.ntruss.com/myproject-backend-board
 
 ## NCP - Ncloud Kubernetes Service 사용하기
 
-### `board-server-secret.yml`
+### 쿠버네티스가 관리할 리소스 정의: 매니페스트 파일(Kubernetes manifest file) 작성
+
+#### secret 타입 리소스 정의 : `board-server-secret.yml`
+
+민감한 정보(Secrets; 예를들면 비밀번호, API 키, 인증 토큰 등)를
+쿠버네티스 클러스터에 안전하게 저장하고 사용할 수 있도록 해주는 리소스 타입
 
 ```yaml
 apiVersion: v1
@@ -175,7 +179,19 @@ stringData:
   JDBC_PASSWORD: bitcamp123!@#
   JDBC_DRIVER: com.mysql.cj.jdbc.Driver
 ```
-### `board-server-deployment.yml`
+
+#### deployment + service 타입 리소스 정의 : `board-server-deployment.yml`
+
+- kind: Deployment
+  - 애플리케이션의 "실행 상태(pod)"를 정의하고 관리하는 리소스
+  - 원하는 개수의 Pod 복제본(replica)을 유지
+  - 애플리케이션의 롤링 업데이트 및 롤백 지원
+  - Pod가 죽으면 자동으로 재생성
+- kind: Service
+  - Pod 집합에 접근할 수 있는 네트워크 인터페이스를 제공하는 리소스
+  - Pod의 IP가 바뀌어도 고정된 접근 지점(ClusterIP, LoadBalancer 등)을 제공
+  - 내부에서 접근하거나 외부로 노출하거나 가능
+  - Deployment로 생성된 Pod들을 라벨로 선택해서 연결해줌
 
 ```yaml
 apiVersion: apps/v1
@@ -198,7 +214,7 @@ spec:
         - name: board-server
           image: lo20hyy7.kr.private-ncr.ntruss.com/myproject-backend-board
           ports:
-            - containerPort: 8020
+            - containerPort: 8010
           envFrom:
             - secretRef:
                 name: board-server-secret
@@ -217,19 +233,23 @@ spec:
   type: LoadBalancer
 ```
 
-### Secret 생성
+도커 이미지를 지정할 때 Private Endpoint 를 사용하면, 내부 통신으로 다뤄진다.
+
+### 리소스 생성
+
+#### Secret 리소스 생성
 
 ```bash
 kubectl2 apply -f board-server-secret.yml
 ```
 
-### Deployment 생성
+#### Deployment + Service 리소스 생성
 
 ```bash
 kubectl2 apply -f board-server-deployment.yml
 ```
 
-### 확인
+#### 생성된 리소스 확인
 
 ```bash
 kubectl2 get secrets
