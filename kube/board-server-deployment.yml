@@ -32,7 +32,6 @@ spec:
     app: board-server
   ports:
     - protocol: TCP
-      port: 8080
+      port: 80
       targetPort: 8080
-      nodePort: 30120
-  type: NodePort
+  type: ClusterIP
